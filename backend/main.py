@@ -26,7 +26,7 @@ def home():
 def add_task(task: Task):
     query = """
     INSERT INTO tasks (title, description, priority)
-    VALUES (%s, %s, %s)
+    VALUES (?, ?, ?)
     """
     cursor.execute(
         query,
@@ -38,18 +38,18 @@ def add_task(task: Task):
 @app.get("/tasks")
 def get_tasks():
     cursor.execute("SELECT * FROM tasks")
-    return cursor.fetchall()
+    return [dict(row) for row in cursor.fetchall()]
 
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int):
-    cursor.execute("SELECT * FROM tasks WHERE id = %s", (task_id,))
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
     task = cursor.fetchone()
 
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
     cursor.execute(
-        "UPDATE tasks SET status = 'Completed' WHERE id = %s",
+        "UPDATE tasks SET status = 'Completed' WHERE id = ?",
         (task_id,)
     )
     conn.commit()
@@ -57,14 +57,14 @@ def update_task(task_id: int):
 
 @app.delete("/tasks/{task_id}")
 def delete_task(task_id: int):
-    cursor.execute("SELECT * FROM tasks WHERE id = %s", (task_id,))
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
     task = cursor.fetchone()
 
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
     cursor.execute(
-        "UPDATE tasks SET status = 'Deleted' WHERE id = %s",
+        "UPDATE tasks SET status = 'Deleted' WHERE id = ?",
         (task_id,)
     )
     conn.commit()
